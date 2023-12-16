@@ -1,0 +1,30 @@
+[tool.black]
+line-length = 125
+skip-string-normalization = true
+target-version = ["py312"]
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | venv
+)/
+'''
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+combine_star = true
+line_length = 125
+skip = ["venv", ".venv", ".git"]
+
+[tool.pyright]
+include = [
+  "app",
+]
+exclude = [
+  "**/__pycache__",
+]
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnusedImport = "error"
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
