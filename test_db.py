@@ -1,11 +1,12 @@
 import re
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from sqlalchemy.orm import declared_attr
-from sqlmodel import Field, Relationship, SQLModel as _SQLModel
+from sqlmodel import Field, Relationship, Session, SQLModel as _SQLModel
 
 from app.core.db import engine
+from uuid7 import uuid7
 
 
 # https://stackoverflow.com/a/1176023/19394867
@@ -23,7 +24,7 @@ class SQLModel(_SQLModel):
 
 class BaseUUIDModel(SQLModel):
     id: UUID = Field(
-        default_factory=uuid4,
+        default_factory=uuid7,
         primary_key=True,
         index=True,
         nullable=False,
@@ -162,10 +163,31 @@ class TraineeWatchingLog(BaseUUIDModel, table=True):
     trainee: Trainee | None = Relationship()
 
 
+class UserUUID7(BaseUUIDModel, table=True):
+    name: str | None = None
+
+
 def create_db_and_tables():
     # SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
 
 
+def test_uuid7():
+    with Session(engine) as session:
+        user_1 = UserUUID7(name='User 1')
+        user_2 = UserUUID7(name='User 2')
+        session.add(user_1)
+        session.add(user_2)
+        session.commit()
+        session.refresh(user_1)
+        session.refresh(user_2)
+
+        print(user_1)
+        print(user_2)
+
+        assert user_1.id < user_2.id
+
+
 if __name__ == '__main__':
     create_db_and_tables()
+    test_uuid7()
