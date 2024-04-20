@@ -1,7 +1,72 @@
 # https://github.com/python/cpython/pull/29824
-from uuid import UUID
+from uuid import UUID as _UUID, SafeUUID
 
-_last_v7_timestamp: int | None = None
+int_ = int  # The built-in int type
+bytes_ = bytes  # The built-in bytes type
+_last_v7_timestamp = None
+
+
+class UUID(_UUID):
+    def __init__(
+        self,
+        hex: str | None = None,
+        bytes: bytes | None = None,
+        bytes_le: bytes | None = None,
+        fields: tuple[int, int, int, int, int, int] | None = None,
+        int: int | None = None,
+        version: int | None = None,
+        *,
+        is_safe: SafeUUID = SafeUUID.unknown,
+    ) -> None:
+        if [hex, bytes, bytes_le, fields, int].count(None) != 4:
+            raise TypeError('one of the hex, bytes, bytes_le, fields, ' 'or int arguments must be given')
+        if hex is not None:
+            hex = hex.replace('urn:', '').replace('uuid:', '')
+            hex = hex.strip('{}').replace('-', '')
+            if len(hex) != 32:
+                raise ValueError('badly formed hexadecimal UUID string')
+            int = int_(hex, 16)
+        if bytes_le is not None:
+            if len(bytes_le) != 16:
+                raise ValueError('bytes_le is not a 16-char string')
+            bytes = bytes_le[4 - 1 :: -1] + bytes_le[6 - 1 : 4 - 1 : -1] + bytes_le[8 - 1 : 6 - 1 : -1] + bytes_le[8:]
+        if bytes is not None:
+            if len(bytes) != 16:
+                raise ValueError('bytes is not a 16-char string')
+            assert isinstance(bytes, bytes_), repr(bytes)
+            int = int_.from_bytes(bytes)  # big endian
+        if fields is not None:
+            if len(fields) != 6:
+                raise ValueError('fields is not a 6-tuple')
+            (time_low, time_mid, time_hi_version, clock_seq_hi_variant, clock_seq_low, node) = fields
+            if not 0 <= time_low < 1 << 32:
+                raise ValueError('field 1 out of range (need a 32-bit value)')
+            if not 0 <= time_mid < 1 << 16:
+                raise ValueError('field 2 out of range (need a 16-bit value)')
+            if not 0 <= time_hi_version < 1 << 16:
+                raise ValueError('field 3 out of range (need a 16-bit value)')
+            if not 0 <= clock_seq_hi_variant < 1 << 8:
+                raise ValueError('field 4 out of range (need an 8-bit value)')
+            if not 0 <= clock_seq_low < 1 << 8:
+                raise ValueError('field 5 out of range (need an 8-bit value)')
+            if not 0 <= node < 1 << 48:
+                raise ValueError('field 6 out of range (need a 48-bit value)')
+            clock_seq = (clock_seq_hi_variant << 8) | clock_seq_low
+            int = (time_low << 96) | (time_mid << 80) | (time_hi_version << 64) | (clock_seq << 48) | node
+        if int is not None:
+            if not 0 <= int < 1 << 128:
+                raise ValueError('int is out of range (need a 128-bit value)')
+        if version is not None:
+            if not 1 <= version <= 7:
+                raise ValueError('illegal version number')
+            # Set the variant to RFC 4122.
+            int &= ~(0xC000 << 48)  # type: ignore
+            int |= 0x8000 << 48  # type: ignore
+            # Set the version number.
+            int &= ~(0xF000 << 64)  # type: ignore
+            int |= version << 76  # type: ignore
+        object.__setattr__(self, 'int', int)
+        object.__setattr__(self, 'is_safe', is_safe)
 
 
 def uuid7():
@@ -30,4 +95,4 @@ def uuid7():
     uuid_int += subsec_a << 80
     uuid_int += subsec_b << 64
     uuid_int += subsec_seq_node
-    return UUID(int=uuid_int, version=5)  # bypassing the version check
+    return UUID(int=uuid_int, version=7)
