@@ -1,30 +1,38 @@
-[tool.black]
-line-length = 125
-skip-string-normalization = true
-target-version = ["py312"]
-exclude = '''
-/(
-    \.git
-  | \.venv
-  | venv
-)/
-'''
-
-[tool.isort]
-profile = "black"
-combine_as_imports = true
-combine_star = true
-line_length = 125
-skip = ["venv", ".venv", ".git"]
-
 [tool.pyright]
-include = [
-  "app",
-]
-exclude = [
-  "**/__pycache__",
-]
-reportUnnecessaryTypeIgnoreComment = "warning"
-reportUnusedImport = "error"
+exclude = ["alembic"]
 pythonVersion = "3.12"
 typeCheckingMode = "basic"
+reportUnusedImport = "error"
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportMissingParameterType = "error"
+reportUnusedVariable = "warning"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = ["alembic"]
+
+[tool.ruff.format]
+preview = true
+quote-style = "single"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+preview = true
+select = [
+  "E",  # pycodestyle errors
+  "W",  # pycodestyle warnings
+  "F",  # pyflakes
+  "I",  # isort
+  "B",  # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "UP",  # pyupgrade
+  "ARG001", # unused arguments in functions
+]
+
+ignore = [
+  "E501",  # line too long, handled by black
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
