@@ -1,8 +1,6 @@
 # https://github.com/python/cpython/pull/29824
 from uuid import UUID as _UUID, SafeUUID
 
-_last_v7_timestamp = None
-
 
 class UUID(_UUID):
     def __init__(
@@ -26,6 +24,9 @@ class UUID(_UUID):
             int |= version << 76  # type: ignore
         object.__setattr__(self, 'int', int)
         object.__setattr__(self, 'is_safe', is_safe)
+
+
+_last_v7_timestamp = None
 
 
 def uuid7():
