@@ -6,7 +6,7 @@ from sqlalchemy.orm import declared_attr
 from sqlmodel import Field, Relationship, Session, SQLModel as _SQLModel
 
 from app.core.db import engine
-from uuid7 import uuid7
+from app.utils.uuid7 import uuid7
 
 
 # https://stackoverflow.com/a/1176023/19394867

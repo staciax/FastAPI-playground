@@ -1,14 +1,14 @@
 # https://github.com/python/cpython/pull/29824
-from uuid import UUID as _UUID, SafeUUID
+import uuid
 
 
-class UUID(_UUID):
+class UUID(uuid.UUID):
     def __init__(
         self,
         int: int | None = None,
         version: int | None = None,
         *,
-        is_safe: SafeUUID = SafeUUID.unknown,
+        is_safe: uuid.SafeUUID = uuid.SafeUUID.unknown,
     ) -> None:
         if int is not None:
             if not 0 <= int < 1 << 128:
