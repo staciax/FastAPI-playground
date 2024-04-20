@@ -64,7 +64,7 @@ class Admin(User, table=True):
 
 
 class Trainner(User, table=True):
-    couses: list['Course'] = Relationship(back_populates='created_by')
+    courses: list['Course'] = Relationship(back_populates='author')
 
 
 class Course(BaseUUIDModel, TimeStampMixin, table=True):
@@ -72,7 +72,7 @@ class Course(BaseUUIDModel, TimeStampMixin, table=True):
     detail: str | None = None
     status: str | None = Field(max_length=50)
     author_id: UUID | None = Field(default=None, foreign_key='trainner.id')
-    author: Trainner | None = Relationship(back_populates='couses')
+    author: Trainner | None = Relationship(back_populates='courses')
 
 
 class CourseLog(BaseUUIDModel, table=True):
